@@ -48,7 +48,7 @@ public:
 
   void placeRandom(int count);
 
-  void randomize(int difficulty,bool verbose);
+  void randomize(int difficulty,bool verbose, int max_threads);
 
   std::vector<int> possibleMoves();
 

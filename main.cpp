@@ -10,7 +10,7 @@ int main(){
   SudokuBoard Sb;
   int isolved;
   string answer;
-  Sb.randomize(100, true);
+  Sb.randomize(100, true, 4);
   Sb.print();
   Sb.solve(Sb, false ,isolved, answer);
   if (isolved == 1){

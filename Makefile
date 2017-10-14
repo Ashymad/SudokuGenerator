@@ -1,5 +1,5 @@
 CXX=g++
-CFLAGS=-I.
+CFLAGS=-I. -pthread
 DEPS = sudoku.h
 OBJ = main.o sudoku.o
 

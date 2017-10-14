@@ -5,6 +5,8 @@
 #include <vector>
 #include <algorithm>
 #include <time.h>
+#include <thread>
+#include <chrono>
 #include "sudoku.h"
 
 using namespace std;
@@ -18,8 +20,8 @@ namespace {
     return ss.str();
   }
 
-  bool minInRange(int & min, int & pos, vector<int> & vec, int a, int b){
-    vector<int>::iterator it;
+  bool minInRange(int & min, int & pos, const vector<int> & vec, int a, int b){
+    vector<int>::const_iterator it;
     for (it = vec.begin(); it != vec.end(); it++){
       if (*it < b && *it > a){
 	min = *it;
@@ -45,6 +47,12 @@ namespace {
     return ss.str();
   }
 
+  int moreRand(int level){
+    for (int i = rand() % level; i > 0; i--)
+      rand();
+    return rand();
+  }
+
   vector<int> findElPos(const vector<int> & vec, int el){
     vector<int> pos;
     for (int i = 0; i < vec.size(); i++){
@@ -56,7 +64,7 @@ namespace {
 
   template<typename T>
 
-  typename vector<T>::iterator vecRand(vector<T> & vec){
+  typename vector<T>::const_iterator vecRand(const vector<T> & vec){
     int r = rand();
     float p = static_cast<float>(RAND_MAX) / static_cast<float>(vec.size());
     for (unsigned int i = 1; i < vec.size() + 1; i++){
@@ -86,9 +94,9 @@ namespace {
 	return true;
     return false;
   }
+
 }
-
-
+  
 SudokuBoard::SudoSq::SudoSq(const string & s) :sqs(s) {};
 
 bool SudokuBoard::SudoSq::checksq(char val){
@@ -194,7 +202,7 @@ void SudokuBoard::placeRandom(int count)
     }
   }
   for (int i = 0; i < 81; i++){
-    vector<pair<int,int>>::iterator p = vecRand(vecp);
+    vector<pair<int,int>>::const_iterator p = vecRand(vecp);
     vector<int> vec;
     for (int j = 0; j < 9; j++){
       if (canBePlaced(p->first, p->second, j))
@@ -208,7 +216,7 @@ void SudokuBoard::placeRandom(int count)
   }
 }
 
-void SudokuBoard::randomize(int difficulty,bool verbose){
+void SudokuBoard::randomize(int difficulty,bool verbose, int max_threads){
   SudokuBoard();
   if (verbose) 
     cout << "Commencing randomization..." << endl;
@@ -218,7 +226,28 @@ void SudokuBoard::randomize(int difficulty,bool verbose){
   if (verbose) {
     cout << "Starting step 1..." << endl;
   }
-  solve(*this, true, solvc, answ);
+  //system("cls");
+  //print();
+  vector<thread> threads;
+		
+  SudokuBoard SB = SudokuBoard(str());
+  for (int i{ 0 }; answ.size() < 1;i++){
+    if (i < max_threads)
+      {
+	threads.push_back(thread([&, SB](){
+	      srand(time(NULL));
+	      solve(SB, true, solvc, answ);
+	    }));
+      }
+    this_thread::sleep_for(chrono::seconds(1));
+  }
+  for (int i = 0; i < threads.size(); i++){
+    if (threads[i].joinable()){
+      cout << "Killing thread " << i << endl;
+      threads[i].join();
+      threads[i].~thread();
+    }
+  }
   if (verbose)
     cout << "Step 1 complete..." << endl;
   *this = SudokuBoard(answ);
@@ -233,7 +262,7 @@ void SudokuBoard::randomize(int difficulty,bool verbose){
   }
   int maxsize{(difficulty * 81) / 100 };
   while (vecp.size() > (81 - maxsize)){
-    vector<pair<int, int>>::iterator p = vecRand(vecp);
+    vector<pair<int, int>>::const_iterator p = vecRand(vecp);
     solvc = 0;
     solve(place(*this,p->first, p->second, 0) , false, solvc, answ);
     if (solvc == 1)
@@ -280,9 +309,8 @@ void SudokuBoard::solve(SudokuBoard SB, bool random,int & solvedcount, string & 
     }
     else {
       vector<int> posplace;
-      vector<int>::iterator it;
-      vector<int> pospos = findElPos(posmov,min);
-      pos = *vecRand(pospos);
+      vector<int>::const_iterator it;
+      pos = *vecRand(findElPos(posmov,min));
       for(int i = 1; i < 10; i++){
 	if (SB.canBePlaced(pos - (pos / 9) * 9, pos / 9, i)){
 	  posplace.push_back(i);
@@ -296,9 +324,7 @@ void SudokuBoard::solve(SudokuBoard SB, bool random,int & solvedcount, string & 
     }
   }
   else {
-    string SBstr = SB.str();
-    vector<int> vecSB = str2vint(SBstr);
-    if (!minInRange(min, pos, vecSB, -1, 1)){
+    if (!minInRange(min, pos, str2vint(SB.str()), -1, 1)){
       ++solvedcount;
       SolvedBoard = SB.str();
       return;
