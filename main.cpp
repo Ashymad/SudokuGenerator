@@ -10,9 +10,17 @@ int main(){
   SudokuBoard Sb;
   int isolved;
   string answer;
-  Sb.randomize(100, true, 4);
+
+  // This method creates a random Sudoku board with only one solution
+  // SudokuBoard::randomize(int difficulty_percent, bool verbose, int max_threads_at_once)
+  Sb.randomize(100, true, 4); 
+
   Sb.print();
-  Sb.solve(Sb, false ,isolved, answer);
+
+  // This method solves Sudoku                           
+  // SudokuBoard::solve(SudokuBoard sudokuBoard, bool place_digits_randomly, int number_of_solutions, string solution)
+  Sb.solve(Sb, false ,isolved, answer); 
+
   if (isolved == 1){
     SudokuBoard(answer).print();
     cout << "This is the only answer." << endl;
