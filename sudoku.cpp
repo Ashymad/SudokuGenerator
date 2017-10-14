@@ -47,12 +47,6 @@ namespace {
     return ss.str();
   }
 
-  int moreRand(int level){
-    for (int i = rand() % level; i > 0; i--)
-      rand();
-    return rand();
-  }
-
   vector<int> findElPos(const vector<int> & vec, int el){
     vector<int> pos;
     for (int i = 0; i < vec.size(); i++){
